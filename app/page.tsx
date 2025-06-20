@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { auth0 } from "../lib/auth0";
 
 export default async function Home() {
