@@ -30,10 +30,35 @@ This is an Auth0 verification and proof-of-concept project built with Next.js. T
 
 ## Auth0 Integration
 
-The project includes Auth0 SDK for Next.js authentication. When working with Auth0 features:
-- HTTPS is required for proper Auth0 callback handling
-- Environment variables for Auth0 configuration should be set up
-- Use the Auth0 Next.js SDK patterns for authentication flows
+The project uses Auth0 Next.js SDK v4.6.1 with the following setup:
+
+### Files Structure:
+- `lib/auth0.ts` - Auth0Client configuration
+- `middleware.ts` - Auth0 middleware for route protection
+- `.env.local` - Auth0 environment variables (not in git)
+
+### Environment Variables (`.env.local`):
+```
+AUTH0_DOMAIN=your-auth0-domain.auth0.com
+AUTH0_CLIENT_ID=your-auth0-client-id
+AUTH0_CLIENT_SECRET=your-auth0-client-secret
+AUTH0_SECRET=your-32-character-secret-here
+APP_BASE_URL=https://127.0.0.1:3000
+```
+
+### Auth0 Dashboard Configuration Required:
+- Allowed Callback URLs: `https://127.0.0.1:3000/auth/callback`
+- Allowed Logout URLs: `https://127.0.0.1:3000`
+
+### Authentication Routes (automatic):
+- `/auth/login` - Login page
+- `/auth/logout` - Logout endpoint
+- `/auth/callback` - Auth0 callback handler
+
+### Usage Patterns:
+- Use `auth0.getSession()` for server-side authentication
+- Use `<a>` tags for login/logout links (not Next.js Link)
+- Session data includes: `user.name`, `user.email`, `user.sub`
 
 ## Development Rules
 
@@ -42,6 +67,15 @@ The project includes Auth0 SDK for Next.js authentication. When working with Aut
 - Auth0 configuration must point to `127.0.0.1` endpoints
 - Any localhost references should be changed to `127.0.0.1`
 - This is required for proper Auth0 authentication flow testing
+
+## Documentation Rules
+
+**README.md Management**:
+- Always update README.md when making significant changes to the project
+- Use Japanese for README.md content as this is a Japanese PoC project
+- Include setup instructions, environment configuration, and project structure
+- Document all available npm commands and their purposes
+- Provide clear Auth0 dashboard configuration requirements
 
 ## Development Notes
 
