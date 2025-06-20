@@ -8,21 +8,13 @@ export default async function Home() {
     return (
       <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
         <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-          <Image
-            className="dark:invert"
-            src="/next.svg"
-            alt="Next.js logo"
-            width={180}
-            height={38}
-            priority
-          />
           <div className="text-center sm:text-left">
             <h1 className="text-2xl font-bold mb-4">Auth0 PoC</h1>
             <p className="text-lg mb-8 text-gray-600 dark:text-gray-400">
               Next.js with Auth0 authentication
             </p>
           </div>
-          
+
           <div className="flex justify-center">
             <a
               className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-blue-600 text-white hover:bg-blue-700 font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
@@ -39,16 +31,10 @@ export default async function Home() {
   return (
     <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
       <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
         <div className="text-center sm:text-left">
-          <h1 className="text-2xl font-bold mb-2">Welcome, {session.user.name}!</h1>
+          <h1 className="text-2xl font-bold mb-2">
+            Welcome, {session.user.name}!
+          </h1>
           <p className="text-lg text-gray-600 dark:text-gray-400 mb-4">
             You are successfully authenticated with Auth0
           </p>
