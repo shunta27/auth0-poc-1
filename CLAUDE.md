@@ -101,7 +101,7 @@ MAILTRAP_FROM_EMAIL=noreply@your-domain.com
 ### Usage Patterns:
 
 - Use `auth0.getSession()` for server-side authentication
-- Use `<a>` tags for login/logout links (not Next.js Link)
+- Use Next.js `Link` component for internal navigation (except Auth0 authentication routes like `/auth/login`, `/auth/logout` which should use `<a>` tags)
 - Session data includes: `user.name`, `user.email`, `user.sub`
 - All forms use consistent design system with Tailwind CSS
 - Email verification is mandatory for new user accounts

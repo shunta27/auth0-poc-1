@@ -1,4 +1,5 @@
 import { auth0 } from "../lib/auth0";
+import Link from "next/link";
 
 export default async function Home() {
   const session = await auth0.getSession();
@@ -15,12 +16,12 @@ export default async function Home() {
           </div>
 
           <div className="flex gap-4 items-center flex-col sm:flex-row">
-            <a
+            <Link
               className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-green-600 text-white hover:bg-green-700 font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
               href="/create-user"
             >
               ユーザー作成
-            </a>
+            </Link>
             <a
               className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-blue-600 text-white hover:bg-blue-700 font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
               href="/auth/login"
