@@ -84,15 +84,31 @@ npm run dev
 - セッション管理
 - ユーザー情報の取得
 - Management API を使用したユーザー作成
+- メール検証機能
 - Mailtrap を使用したメール送信
 
-### 認証ルート
+### アプリケーションページ
 
-Auth0 SDK により以下のルートが自動で提供されます：
+#### 認証関連ページ
 
-- `/auth/login` - ログインページ
-- `/auth/logout` - ログアウト
-- `/auth/callback` - Auth0 コールバック処理
+- `/` - トップページ（認証状態に応じた表示）
+- `/auth/login` - ログインページ（Auth0 SDK自動提供）
+- `/auth/logout` - ログアウト（Auth0 SDK自動提供）
+- `/auth/callback` - Auth0 コールバック処理（Auth0 SDK自動提供）
+
+#### ユーザー管理ページ
+
+- `/create-user` - ユーザー作成フォームページ
+- `/verify-email` - メール検証確認ページ
+
+### ユーザー作成フロー
+
+1. **ユーザー作成**: `/create-user`ページでメールアドレスとパスワードを入力
+2. **API処理**: Management APIでAuth0にユーザーを作成
+3. **メール送信**: Mailtrapを使用して検証メールを自動送信
+4. **確認ページ**: `/verify-email`ページで検証メール送信完了を表示
+5. **メール確認**: ユーザーがメール内のリンクをクリックしてアカウント有効化
+6. **ログイン**: 検証完了後、通常のログインフローでアクセス可能
 
 ### API エンドポイント
 
@@ -191,14 +207,39 @@ curl -X POST https://localhost:3000/api/send-email \
 ├── app/
 │   ├── api/
 │   │   ├── users/        # ユーザー作成 API
-│   │   └── send-email/   # メール送信 API
+│   │   ├── send-email/   # メール送信 API
+│   │   └── verify-email/ # メール検証 API
+│   ├── create-user/      # ユーザー作成ページ
+│   │   └── page.tsx
+│   ├── verify-email/     # メール検証確認ページ
+│   │   └── page.tsx
 │   ├── page.tsx          # メインページ（認証ロジック含む）
-│   └── layout.tsx        # レイアウトコンポーネント
+│   ├── layout.tsx        # レイアウトコンポーネント
+│   └── globals.css       # グローバルスタイル
 ├── lib/
 │   ├── auth0.ts          # Auth0 クライアント設定
 │   ├── auth0-management.ts # Auth0 Management API 設定
 │   └── mailer.ts         # メール送信ユーティリティ
 ├── middleware.ts         # Auth0 ミドルウェア
 ├── .env.local           # 環境変数（要作成）
-└── certificates/        # HTTPS 証明書
+├── certificates/        # HTTPS 証明書
+└── CLAUDE.md           # Claude Code 用プロジェクト指示書
 ```
+
+## 使用方法
+
+### 新規ユーザー登録
+
+1. アプリケーションのトップページ（`https://127.0.0.1:3000`）にアクセス
+2. 「ユーザー作成」ボタンをクリック
+3. `/create-user`ページでメールアドレスとパスワードを入力
+4. フォーム送信後、自動的に`/verify-email`ページにリダイレクト
+5. 登録したメールアドレスに送信された検証メールを確認
+6. メール内のリンクをクリックしてアカウント有効化
+7. 「Log in」ボタンからAuth0のログインフローでサインイン
+
+### 既存ユーザーのログイン
+
+1. トップページで「Log in」ボタンをクリック
+2. Auth0のログインページでメールアドレスとパスワードを入力
+3. 認証成功後、トップページに戻りユーザー情報が表示される

@@ -35,6 +35,17 @@ export async function POST(request: NextRequest) {
     
     if (!emailSent) {
       console.warn('Failed to send verification email to:', email);
+      // Delete the created user if email sending failed
+      try {
+        await managementClient.users.delete({ id: user.data.user_id! });
+        console.log('User deleted due to email sending failure:', user.data.user_id);
+      } catch (deleteError) {
+        console.error('Failed to delete user after email failure:', deleteError);
+      }
+      return NextResponse.json(
+        { error: "Failed to send verification email. User creation cancelled." },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({
@@ -46,9 +57,7 @@ export async function POST(request: NextRequest) {
         created_at: user.data.created_at,
         email_verified: user.data.email_verified,
       },
-      message: emailSent 
-        ? 'User created successfully. Verification email sent.'
-        : 'User created successfully. Failed to send verification email.',
+      message: 'User created successfully. Verification email sent.',
     });
   } catch (error: unknown) {
     console.error("Error creating user:", error);

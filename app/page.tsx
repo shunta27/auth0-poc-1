@@ -14,7 +14,13 @@ export default async function Home() {
             </p>
           </div>
 
-          <div className="flex justify-center">
+          <div className="flex gap-4 items-center flex-col sm:flex-row">
+            <a
+              className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-green-600 text-white hover:bg-green-700 font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
+              href="/create-user"
+            >
+              ユーザー作成
+            </a>
             <a
               className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-blue-600 text-white hover:bg-blue-700 font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
               href="/auth/login"
