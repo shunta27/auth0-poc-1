@@ -48,6 +48,7 @@ AUTH0_CONNECTION_NAME=your-connection-name
 ```
 
 `AUTH0_SECRET` は以下のコマンドで生成できます：
+
 ```bash
 openssl rand -hex 32
 ```
@@ -97,18 +98,19 @@ curl -X POST https://localhost:3000/api/users \
   -H "Content-Type: application/json" \
   -d '{
     "email": "user@example.com",
-    "password": "Password123!",
-    "name": "User Name"
+    "password": "Password123!"
   }' \
   --insecure
 ```
 
 **パラメータ:**
-- `email` (必須): ユーザーのメールアドレス（user_idとしても使用される）
+
+- `email` (必須): ユーザーのメールアドレス（user_id としても使用される）
 - `password` (必須): ユーザーのパスワード
 - `name` (オプション): ユーザーの表示名（未指定の場合はメールアドレスから生成）
 
 **レスポンス例:**
+
 ```json
 {
   "success": true,

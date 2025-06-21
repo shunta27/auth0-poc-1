@@ -19,10 +19,11 @@ export async function POST(request: NextRequest) {
       user_id: email,
       email,
       password,
-      connection: process.env.AUTH0_CONNECTION_NAME || "Username-Password-Authentication",
+      connection:
+        process.env.AUTH0_CONNECTION_NAME || "Username-Password-Authentication",
       name: name || email.split("@")[0],
-      email_verified: false,
-      verify_email: false,
+      // email_verified: false,
+      // verify_email: false,
     };
 
     const user = await managementClient.users.create(userData);
