@@ -45,6 +45,12 @@ AUTH0_MANAGEMENT_CLIENT_ID=your-management-api-client-id
 AUTH0_MANAGEMENT_CLIENT_SECRET=your-management-api-client-secret
 AUTH0_MANAGEMENT_AUDIENCE=https://your-auth0-domain.auth0.com/api/v2/
 AUTH0_CONNECTION_NAME=your-connection-name
+
+# Mailtrap Configuration
+MAILTRAP_API_KEY=your-mailtrap-api-key
+MAILTRAP_SMTP_HOST=live.smtp.mailtrap.io
+MAILTRAP_SMTP_PORT=587
+MAILTRAP_FROM_EMAIL=noreply@your-domain.com
 ```
 
 `AUTH0_SECRET` は以下のコマンドで生成できます：
@@ -78,6 +84,7 @@ npm run dev
 - セッション管理
 - ユーザー情報の取得
 - Management API を使用したユーザー作成
+- Mailtrap を使用したメール送信
 
 ### 認証ルート
 
@@ -123,14 +130,74 @@ curl -X POST https://localhost:3000/api/users \
 }
 ```
 
+#### メール送信 API
+
+Mailtrap を使用してメールを送信できます：
+
+**ウェルカムメール送信:**
+
+```bash
+curl -X POST https://localhost:3000/api/send-email \
+  -H "Content-Type: application/json" \
+  -d '{
+    "to": "shunta27ichikawa@gmail.com",
+    "name": "Test User",
+    "type": "welcome"
+  }' \
+  --insecure
+```
+
+**カスタムメール送信:**
+
+```bash
+curl -X POST https://localhost:3000/api/send-email \
+  -H "Content-Type: application/json" \
+  -d '{
+    "to": "user@example.com",
+    "subject": "Test Email",
+    "text": "This is a test email",
+    "html": "<h1>Test Email</h1><p>This is a test email</p>"
+  }' \
+  --insecure
+```
+
+**パラメータ:**
+
+**ウェルカムメール (`type: "welcome"`):**
+
+- `to` (必須): 送信先メールアドレス
+- `name` (必須): ユーザー名
+- `type` (必須): "welcome" を指定
+
+**カスタムメール:**
+
+- `to` (必須): 送信先メールアドレス
+- `subject` (必須): メール件名
+- `text` (オプション): プレーンテキスト本文
+- `html` (オプション): HTML 形式本文
+
+**レスポンス例:**
+
+```json
+{
+  "success": true,
+  "message": "Email sent successfully"
+}
+```
+
 ## プロジェクト構成
 
 ```
 ├── app/
+│   ├── api/
+│   │   ├── users/        # ユーザー作成 API
+│   │   └── send-email/   # メール送信 API
 │   ├── page.tsx          # メインページ（認証ロジック含む）
 │   └── layout.tsx        # レイアウトコンポーネント
 ├── lib/
-│   └── auth0.ts          # Auth0 クライアント設定
+│   ├── auth0.ts          # Auth0 クライアント設定
+│   ├── auth0-management.ts # Auth0 Management API 設定
+│   └── mailer.ts         # メール送信ユーティリティ
 ├── middleware.ts         # Auth0 ミドルウェア
 ├── .env.local           # 環境変数（要作成）
 └── certificates/        # HTTPS 証明書
