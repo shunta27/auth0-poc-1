@@ -23,8 +23,8 @@ npm install
 Auth0 ダッシュボードでアプリケーションを作成し、以下の設定を行ってください：
 
 - **Application Type**: Regular Web Application
-- **Allowed Callback URLs**: `https://127.0.0.1:3000/auth/callback`
-- **Allowed Logout URLs**: `https://127.0.0.1:3000`
+- **Allowed Callback URLs**: `https://localhost:3000/auth/callback`
+- **Allowed Logout URLs**: `https://localhost:3000`
 
 ### 3. 環境変数の設定
 
@@ -37,7 +37,7 @@ AUTH0_CLIENT_ID=your-auth0-client-id
 AUTH0_CLIENT_SECRET=your-auth0-client-secret
 AUTH0_SECRET=your-32-character-secret-here
 APP_BASE_URL=https://localhost:3000
-AUTH0_AUDIENCE=https://127.0.0.1:3000/
+AUTH0_AUDIENCE=https://localhost:3000/
 AUTH0_SCOPE=openid profile email
 
 # Auth0 Management API Configuration
@@ -65,13 +65,13 @@ openssl rand -hex 32
 npm run dev
 ```
 
-アプリケーションは `https://127.0.0.1:3000` でアクセスできます。
+アプリケーションは `https://localhost:3000` でアクセスできます。
 
-**注意**: このプロジェクトでは Auth0 の認証フローテストのため、必ず `127.0.0.1` を使用し、`localhost` は使用しないでください。
+**注意**: このプロジェクトでは Auth0 の認証フローテストのため、必ず `localhost` を使用し、`localhost` は使用しないでください。
 
 ## 利用可能なコマンド
 
-- `npm run dev` - 開発サーバーを起動（HTTPS、127.0.0.1）
+- `npm run dev` - 開発サーバーを起動（HTTPS、localhost）
 - `npm run build` - プロダクション用ビルド
 - `npm run start` - プロダクションサーバーを起動
 - `npm run lint` - ESLint によるコード品質チェック
@@ -92,9 +92,9 @@ npm run dev
 #### 認証関連ページ
 
 - `/` - トップページ（認証状態に応じた表示）
-- `/auth/login` - ログインページ（Auth0 SDK自動提供）
-- `/auth/logout` - ログアウト（Auth0 SDK自動提供）
-- `/auth/callback` - Auth0 コールバック処理（Auth0 SDK自動提供）
+- `/auth/login` - ログインページ（Auth0 SDK 自動提供）
+- `/auth/logout` - ログアウト（Auth0 SDK 自動提供）
+- `/auth/callback` - Auth0 コールバック処理（Auth0 SDK 自動提供）
 
 #### ユーザー管理ページ
 
@@ -104,8 +104,8 @@ npm run dev
 ### ユーザー作成フロー
 
 1. **ユーザー作成**: `/create-user`ページでメールアドレスとパスワードを入力
-2. **API処理**: Management APIでAuth0にユーザーを作成
-3. **メール送信**: Mailtrapを使用して検証メールを自動送信
+2. **API 処理**: Management API で Auth0 にユーザーを作成
+3. **メール送信**: Mailtrap を使用して検証メールを自動送信
 4. **確認ページ**: `/verify-email`ページで検証メール送信完了を表示
 5. **メール確認**: ユーザーがメール内のリンクをクリックしてアカウント有効化
 6. **ログイン**: 検証完了後、通常のログインフローでアクセス可能
@@ -230,16 +230,16 @@ curl -X POST https://localhost:3000/api/send-email \
 
 ### 新規ユーザー登録
 
-1. アプリケーションのトップページ（`https://127.0.0.1:3000`）にアクセス
+1. アプリケーションのトップページ（`https://localhost:3000`）にアクセス
 2. 「ユーザー作成」ボタンをクリック
 3. `/create-user`ページでメールアドレスとパスワードを入力
 4. フォーム送信後、自動的に`/verify-email`ページにリダイレクト
 5. 登録したメールアドレスに送信された検証メールを確認
 6. メール内のリンクをクリックしてアカウント有効化
-7. 「Log in」ボタンからAuth0のログインフローでサインイン
+7. 「Log in」ボタンから Auth0 のログインフローでサインイン
 
 ### 既存ユーザーのログイン
 
 1. トップページで「Log in」ボタンをクリック
-2. Auth0のログインページでメールアドレスとパスワードを入力
+2. Auth0 のログインページでメールアドレスとパスワードを入力
 3. 認証成功後、トップページに戻りユーザー情報が表示される

@@ -8,7 +8,7 @@ This is an Auth0 verification and proof-of-concept project built with Next.js. T
 
 ## Development Commands
 
-- `npm run dev` - Start development server with HTTPS on 127.0.0.1 (uses Turbopack)
+- `npm run dev` - Start development server with HTTPS on localhost (uses Turbopack)
 - `npm run build` - Build the application for production
 - `npm run start` - Start production server
 - `npm run lint` - Run ESLint to check code quality
@@ -23,7 +23,7 @@ This is an Auth0 verification and proof-of-concept project built with Next.js. T
 
 ## Key Configuration
 
-- Development server runs on `https://127.0.0.1:3000` (not localhost)
+- Development server runs on `https://localhost:3000` (not localhost)
 - Local SSL certificates are stored in `/certificates/` directory
 - TypeScript path mapping configured with `@/*` pointing to project root
 - ESLint configured with Next.js and TypeScript rules
@@ -33,6 +33,7 @@ This is an Auth0 verification and proof-of-concept project built with Next.js. T
 The project uses Auth0 Next.js SDK v4.6.1 with Management API and email verification:
 
 ### Files Structure:
+
 - `lib/auth0.ts` - Auth0Client configuration
 - `lib/auth0-management.ts` - Auth0 Management API client setup
 - `lib/mailer.ts` - Email sending utilities (Mailtrap integration)
@@ -40,13 +41,14 @@ The project uses Auth0 Next.js SDK v4.6.1 with Management API and email verifica
 - `.env.local` - Auth0 environment variables (not in git)
 
 ### Environment Variables (`.env.local`):
+
 ```
 # Auth0 Configuration
 AUTH0_DOMAIN=your-auth0-domain.auth0.com
 AUTH0_CLIENT_ID=your-auth0-client-id
 AUTH0_CLIENT_SECRET=your-auth0-client-secret
 AUTH0_SECRET=your-32-character-secret-here
-APP_BASE_URL=https://127.0.0.1:3000
+APP_BASE_URL=https://localhost:3000
 
 # Auth0 Management API Configuration
 AUTH0_MANAGEMENT_CLIENT_ID=your-management-api-client-id
@@ -62,27 +64,32 @@ MAILTRAP_FROM_EMAIL=noreply@your-domain.com
 ```
 
 ### Auth0 Dashboard Configuration Required:
-- Allowed Callback URLs: `https://127.0.0.1:3000/auth/callback`
-- Allowed Logout URLs: `https://127.0.0.1:3000`
+
+- Allowed Callback URLs: `https://localhost:3000/auth/callback`
+- Allowed Logout URLs: `https://localhost:3000`
 
 ### Application Pages:
 
 #### Authentication Routes (Auth0 SDK automatic):
+
 - `/auth/login` - Login page
 - `/auth/logout` - Logout endpoint
 - `/auth/callback` - Auth0 callback handler
 
 #### Custom Application Pages:
+
 - `/` - Home page with authentication state handling
 - `/create-user` - User registration form page
 - `/verify-email` - Email verification confirmation page
 
 #### API Endpoints:
+
 - `/api/users` - POST: Create new user with Management API
 - `/api/send-email` - POST: Send emails via Mailtrap
 - `/api/verify-email` - POST: Handle email verification
 
 ### User Registration Flow:
+
 1. User visits `/create-user` page and fills registration form
 2. Form submission sends POST to `/api/users`
 3. Management API creates user in Auth0
@@ -92,6 +99,7 @@ MAILTRAP_FROM_EMAIL=noreply@your-domain.com
 7. User can then log in through standard Auth0 flow
 
 ### Usage Patterns:
+
 - Use `auth0.getSession()` for server-side authentication
 - Use `<a>` tags for login/logout links (not Next.js Link)
 - Session data includes: `user.name`, `user.email`, `user.sub`
@@ -100,15 +108,17 @@ MAILTRAP_FROM_EMAIL=noreply@your-domain.com
 
 ## Development Rules
 
-**IMPORTANT**: Always use `127.0.0.1` with HTTPS for local development, never `localhost`:
-- All local URLs must use `https://127.0.0.1:3000` format
-- Auth0 configuration must point to `127.0.0.1` endpoints
-- Any localhost references should be changed to `127.0.0.1`
+**IMPORTANT**: Always use `localhost` with HTTPS for local development, never `localhost`:
+
+- All local URLs must use `https://localhost:3000` format
+- Auth0 configuration must point to `localhost` endpoints
+- Any localhost references should be changed to `localhost`
 - This is required for proper Auth0 authentication flow testing
 
 ## Documentation Rules
 
 **README.md Management**:
+
 - Always update README.md when making significant changes to the project
 - Use Japanese for README.md content as this is a Japanese PoC project
 - Include setup instructions, environment configuration, and project structure
