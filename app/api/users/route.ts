@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getManagementClient } from "../../../lib/auth0-management";
+import { sendEmailVerification } from "../../../lib/mailer";
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,11 +23,19 @@ export async function POST(request: NextRequest) {
       connection:
         process.env.AUTH0_CONNECTION_NAME || "Username-Password-Authentication",
       name: name || email.split("@")[0],
-      // email_verified: false,
-      // verify_email: false,
+      email_verified: false,
+      verify_email: false,
     };
 
     const user = await managementClient.users.create(userData);
+
+    // Send email verification after user creation
+    const userName = user.data.name || name || email.split("@")[0];
+    const emailSent = await sendEmailVerification(email, userName);
+    
+    if (!emailSent) {
+      console.warn('Failed to send verification email to:', email);
+    }
 
     return NextResponse.json({
       success: true,
@@ -35,7 +44,11 @@ export async function POST(request: NextRequest) {
         email: user.data.email,
         name: user.data.name,
         created_at: user.data.created_at,
+        email_verified: user.data.email_verified,
       },
+      message: emailSent 
+        ? 'User created successfully. Verification email sent.'
+        : 'User created successfully. Failed to send verification email.',
     });
   } catch (error: unknown) {
     console.error("Error creating user:", error);

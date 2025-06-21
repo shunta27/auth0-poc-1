@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { generateEmailVerificationToken } from './jwt';
 
 export interface EmailOptions {
   to: string;
@@ -89,4 +90,84 @@ export async function sendWelcomeEmail(userEmail: string, userName: string): Pro
     text,
     html,
   });
+}
+
+export async function sendEmailVerification(userEmail: string, userName: string): Promise<boolean> {
+  try {
+    const token = generateEmailVerificationToken(userEmail);
+    const verifyUrl = `${process.env.EMAIL_VERIFY_URL}?token=${token}`;
+
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h1 style="color: #333; margin-bottom: 10px;">Verify Your Email Address</h1>
+          <p style="color: #666; font-size: 16px;">Complete your account setup</p>
+        </div>
+        
+        <div style="background: #f8f9fa; padding: 25px; border-radius: 8px; margin-bottom: 30px;">
+          <p style="margin: 0 0 15px 0; color: #333; font-size: 16px;">Hi ${userName},</p>
+          <p style="margin: 0 0 15px 0; color: #333; line-height: 1.6;">
+            Thank you for creating an account with Auth0 PoC. To complete your registration and verify your email address, please click the button below:
+          </p>
+          <p style="margin: 0; color: #666; font-size: 14px;">
+            <strong>Email:</strong> ${userEmail}
+          </p>
+        </div>
+
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${verifyUrl}" 
+             style="display: inline-block; padding: 12px 30px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px;">
+            Verify Email Address
+          </a>
+        </div>
+
+        <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 5px; margin: 20px 0;">
+          <p style="margin: 0; color: #856404; font-size: 14px;">
+            <strong>Security Note:</strong> This verification link will expire in 24 hours for your security.
+          </p>
+        </div>
+
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+          <p style="color: #666; font-size: 12px; margin: 0;">
+            If you didn't create this account, you can safely ignore this email.
+          </p>
+          <p style="color: #666; font-size: 12px; margin: 10px 0 0 0;">
+            This is an automated message from Auth0 PoC application.
+          </p>
+        </div>
+      </div>
+    `;
+
+    const text = `
+      Verify Your Email Address - Auth0 PoC
+      
+      Hi ${userName},
+      
+      Thank you for creating an account with Auth0 PoC. To complete your registration and verify your email address, please click the link below:
+      
+      ${verifyUrl}
+      
+      Email: ${userEmail}
+      
+      Security Note: This verification link will expire in 24 hours for your security.
+      
+      If you didn't create this account, you can safely ignore this email.
+      
+      This is an automated message from Auth0 PoC application.
+    `;
+
+    const isLocal = process.env.NODE_ENV !== 'production';
+    const recipientEmail = isLocal ? (process.env.TEST_EMAIL || userEmail) : userEmail;
+
+    return await sendEmail({
+      to: recipientEmail,
+      subject: 'Verify Your Email Address - Auth0 PoC',
+      text,
+      html,
+    });
+
+  } catch (error) {
+    console.error('Failed to send email verification:', error);
+    return false;
+  }
 }
