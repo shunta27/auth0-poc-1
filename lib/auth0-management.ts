@@ -1,6 +1,7 @@
-import { ManagementClient } from "auth0";
+import { ManagementClient, AuthenticationClient } from "auth0";
 
 let managementClient: ManagementClient | null = null;
+let authenticationClient: AuthenticationClient | null = null;
 
 export function getManagementClient(): ManagementClient {
   if (!managementClient) {
@@ -22,4 +23,24 @@ export function getManagementClient(): ManagementClient {
   }
 
   return managementClient;
+}
+
+export function getAuthenticationClient(): AuthenticationClient {
+  if (!authenticationClient) {
+    const domain = process.env.AUTH0_DOMAIN;
+    const clientId = process.env.AUTH0_CLIENT_ID;
+    const clientSecret = process.env.AUTH0_CLIENT_SECRET;
+
+    if (!domain || !clientId || !clientSecret) {
+      throw new Error("Missing Auth0 configuration");
+    }
+
+    authenticationClient = new AuthenticationClient({
+      domain,
+      clientId,
+      clientSecret,
+    });
+  }
+
+  return authenticationClient;
 }
