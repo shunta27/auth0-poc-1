@@ -1,46 +1,48 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
+import Link from "next/link";
+import { useState } from "react";
 
 export default function CreateUser() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [result, setResult] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setResult(null)
-    setError(null)
+    e.preventDefault();
+    setLoading(true);
+    setResult(null);
+    setError(null);
 
     try {
-      const response = await fetch('/api/users', {
-        method: 'POST',
+      const response = await fetch("/api/users", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           email,
           password,
         }),
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (response.ok) {
         // Redirect to verification page on success
-        window.location.href = '/verify-email'
+        window.location.href = "/verify-email";
       } else {
-        setError(data.error || 'ユーザー作成に失敗しました')
+        setError(data.error || "ユーザー作成に失敗しました");
       }
-    } catch (err) {
-      setError('ネットワークエラーが発生しました')
+    } catch (err: unknown) {
+      console.error("Error creating user:", { err });
+      setError("ネットワークエラーが発生しました");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
@@ -55,7 +57,10 @@ export default function CreateUser() {
         <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 w-full max-w-md">
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
                 メールアドレス
               </label>
               <input
@@ -72,7 +77,10 @@ export default function CreateUser() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
                 パスワード
               </label>
               <input
@@ -93,13 +101,15 @@ export default function CreateUser() {
               disabled={loading}
               className="w-full rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-blue-600 text-white hover:bg-blue-700 font-medium text-sm sm:text-base h-12 px-5 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'ユーザー作成中...' : 'ユーザーを作成'}
+              {loading ? "ユーザー作成中..." : "ユーザーを作成"}
             </button>
           </form>
 
           {result && (
             <div className="mt-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-              <p className="text-sm text-green-800 dark:text-green-400">{result}</p>
+              <p className="text-sm text-green-800 dark:text-green-400">
+                {result}
+              </p>
             </div>
           )}
 
@@ -111,14 +121,14 @@ export default function CreateUser() {
         </div>
 
         <div className="flex justify-center mt-4">
-          <a
+          <Link
             href="/"
             className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
           >
             ← トップページに戻る
-          </a>
+          </Link>
         </div>
       </main>
     </div>
-  )
+  );
 }
