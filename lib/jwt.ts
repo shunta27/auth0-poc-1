@@ -66,7 +66,7 @@ export function verifyGenericToken(token: string): Record<string, unknown> | nul
   try {
     const decoded = jwt.verify(token, jwtSecret, {
       issuer: 'auth-poc'
-    });
+    }) as Record<string, unknown>;
     
     return decoded;
   } catch (error) {
