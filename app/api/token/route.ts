@@ -9,11 +9,18 @@ export async function GET() {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
+    const tokenSet = session.tokenSet;
+    
     return NextResponse.json({
-      access_token: session.tokenSet.accessToken,
+      access_token: tokenSet.accessToken,
+      refresh_token: tokenSet.refreshToken,
+      expires_at: tokenSet.expiresAt,
+      expires_in: tokenSet.expiresIn,
+      token_type: "Bearer",
+      scope: tokenSet.scope,
     });
   } catch (error) {
-    console.error("Error fetching access token:", error);
+    console.error("Error fetching tokens:", error);
 
     return NextResponse.json(
       { error: "Internal server error" },

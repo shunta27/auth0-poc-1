@@ -3,17 +3,33 @@
 import { useState } from 'react'
 import Link from 'next/link'
 
+interface TokenData {
+  access_token: string;
+  refresh_token?: string;
+  expires_at?: number;
+  expires_in?: number;
+  token_type?: string;
+  scope?: string;
+}
+
+interface UserInfo {
+  sub: string;
+  name: string;
+  email: string;
+  picture?: string;
+  email_verified: boolean;
+  updated_at?: string;
+}
+
 export default function ProfilePage() {
-  const [userInfo, setUserInfo] = useState<any>(null)
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null)
+  const [tokenData, setTokenData] = useState<TokenData | null>(null)
   const [loading, setLoading] = useState(false)
+  const [refreshLoading, setRefreshLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchUserInfo = async () => {
-    setLoading(true)
-    setError(null)
-    
+  const fetchTokens = async () => {
     try {
-      // Get access token from session
       const tokenResponse = await fetch('/api/token', {
         method: 'GET',
         headers: {
@@ -22,24 +38,47 @@ export default function ProfilePage() {
       })
 
       if (!tokenResponse.ok) {
-        throw new Error('Failed to get access token')
+        throw new Error('Failed to get tokens')
       }
 
-      const tokenData = await tokenResponse.json()
-      const accessToken = tokenData.access_token
+      const tokens = await tokenResponse.json()
+      setTokenData(tokens)
+      return tokens
+    } catch (err) {
+      throw new Error(err instanceof Error ? err.message : 'Failed to fetch tokens')
+    }
+  }
+
+  const fetchUserInfo = async (accessToken?: string) => {
+    setLoading(true)
+    setError(null)
+    
+    try {
+      let tokens = tokenData
+      
+      // Get tokens if not provided
+      if (!accessToken && !tokens) {
+        tokens = await fetchTokens()
+      }
+
+      const token = accessToken || tokens?.access_token
+
+      if (!token) {
+        throw new Error('No access token available')
+      }
 
       // Use access token to call /api/me
       const response = await fetch('/api/me', {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${accessToken}`,
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       })
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to fetch user info')
+        throw new Error(errorData.error_description || errorData.error || 'Failed to fetch user info')
       }
 
       const data = await response.json()
@@ -51,50 +90,86 @@ export default function ProfilePage() {
     }
   }
 
+  const refreshToken = async () => {
+    if (!tokenData?.refresh_token) {
+      setError('No refresh token available')
+      return
+    }
+
+    setRefreshLoading(true)
+    setError(null)
+    
+    try {
+      const response = await fetch('/api/refresh-token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          refresh_token: tokenData.refresh_token
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error_description || errorData.error || 'Failed to refresh token')
+      }
+
+      const newTokens = await response.json()
+      setTokenData(prev => ({ ...prev, ...newTokens }))
+      
+      // Automatically fetch user info with new token
+      await fetchUserInfo(newTokens.access_token)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred')
+    } finally {
+      setRefreshLoading(false)
+    }
+  }
+
+  const loadTokensOnly = async () => {
+    setError(null)
+    try {
+      await fetchTokens()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load tokens')
+    }
+  }
+
   return (
     <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
       <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
         <div className="text-center sm:text-left">
-          <h1 className="text-2xl font-bold mb-2">プロフィール情報</h1>
+          <h1 className="text-2xl font-bold mb-2">アクセストークン・リフレッシュトークンテスト</h1>
           <p className="text-lg text-gray-600 dark:text-gray-400 mb-4">
-            /api/me エンドポイントからユーザー情報を取得
+            Auth0のトークン管理とAPI認証のデモンストレーション
           </p>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 w-full max-w-2xl">
-          <div className="mb-6">
+        <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 w-full max-w-4xl">
+          {/* Control Buttons */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
             <button
-              onClick={fetchUserInfo}
-              disabled={loading}
-              className="w-full rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm sm:text-base h-12 px-5"
+              onClick={loadTokensOnly}
+              className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-green-600 text-white hover:bg-green-700 font-medium text-sm sm:text-base h-12 px-5"
             >
-              {loading ? (
-                <>
-                  <svg
-                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  ユーザー情報取得中...
-                </>
-              ) : (
-                'ユーザー情報を取得'
-              )}
+              トークン取得
+            </button>
+            
+            <button
+              onClick={() => fetchUserInfo()}
+              disabled={loading}
+              className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm sm:text-base h-12 px-5"
+            >
+              {loading ? 'ユーザー情報取得中...' : 'ユーザー情報取得'}
+            </button>
+            
+            <button
+              onClick={refreshToken}
+              disabled={refreshLoading || !tokenData?.refresh_token}
+              className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm sm:text-base h-12 px-5"
+            >
+              {refreshLoading ? 'トークン更新中...' : 'トークン更新'}
             </button>
           </div>
 
@@ -103,16 +178,66 @@ export default function ProfilePage() {
               <p className="text-sm text-red-800 dark:text-red-400">
                 <span className="font-semibold">エラー:</span> {error}
               </p>
-              <p className="text-xs text-red-600 dark:text-red-500 mt-2">
-                ログインしていることを確認してください
-              </p>
             </div>
           )}
 
+          {/* Token Information */}
+          {tokenData && (
+            <div className="mb-6 bg-gray-100 dark:bg-gray-900/50 rounded-lg p-6">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                トークン情報
+              </h2>
+              
+              <div className="space-y-4">
+                <div className="border-b border-gray-200 dark:border-gray-700 pb-3">
+                  <span className="font-medium text-gray-600 dark:text-gray-400 block mb-2">アクセストークン:</span>
+                  <code className="text-xs bg-white dark:bg-gray-800 p-2 rounded border text-gray-900 dark:text-white break-all block">
+                    {tokenData.access_token ? `${tokenData.access_token.substring(0, 50)}...` : 'なし'}
+                  </code>
+                </div>
+                
+                <div className="border-b border-gray-200 dark:border-gray-700 pb-3">
+                  <span className="font-medium text-gray-600 dark:text-gray-400 block mb-2">リフレッシュトークン:</span>
+                  <code className="text-xs bg-white dark:bg-gray-800 p-2 rounded border text-gray-900 dark:text-white break-all block">
+                    {tokenData.refresh_token ? `${tokenData.refresh_token.substring(0, 50)}...` : 'なし'}
+                  </code>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <span className="font-medium text-gray-600 dark:text-gray-400">有効期限（秒）:</span>
+                    <span className="text-gray-900 dark:text-white ml-2">{tokenData.expires_in || 'N/A'}</span>
+                  </div>
+                  <div>
+                    <span className="font-medium text-gray-600 dark:text-gray-400">トークンタイプ:</span>
+                    <span className="text-gray-900 dark:text-white ml-2">{tokenData.token_type || 'N/A'}</span>
+                  </div>
+                </div>
+                
+                {tokenData.expires_at && (
+                  <div>
+                    <span className="font-medium text-gray-600 dark:text-gray-400">有効期限:</span>
+                    <span className="text-gray-900 dark:text-white ml-2">
+                      {new Date(tokenData.expires_at * 1000).toLocaleString('ja-JP')}
+                    </span>
+                  </div>
+                )}
+                
+                {tokenData.scope && (
+                  <div>
+                    <span className="font-medium text-gray-600 dark:text-gray-400">スコープ:</span>
+                    <span className="text-gray-900 dark:text-white ml-2">{tokenData.scope}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* User Information */}
           {userInfo && (
             <div className="bg-gray-100 dark:bg-gray-900/50 rounded-lg p-6">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                ユーザー情報
+                ユーザー情報（/api/me から取得）
               </h2>
               
               <div className="space-y-4">
@@ -152,7 +277,7 @@ export default function ProfilePage() {
                 <div className="flex items-center justify-between py-3">
                   <span className="font-medium text-gray-600 dark:text-gray-400">最終更新:</span>
                   <span className="text-gray-900 dark:text-white text-sm">
-                    {userInfo.updated_at ? new Date(userInfo.updated_at).toLocaleDateString('ja-JP') : 'N/A'}
+                    {userInfo.updated_at ? new Date(userInfo.updated_at).toLocaleString('ja-JP') : 'N/A'}
                   </span>
                 </div>
               </div>

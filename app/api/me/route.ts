@@ -6,7 +6,10 @@ export async function GET(request: NextRequest) {
 
     if (!authorization || !authorization.startsWith("Bearer ")) {
       return NextResponse.json(
-        { error: "Missing or invalid authorization header" },
+        { 
+          error: "missing_authorization_header",
+          error_description: "Authorization header with Bearer token is required"
+        },
         { status: 401 }
       );
     }
@@ -23,9 +26,50 @@ export async function GET(request: NextRequest) {
     });
 
     if (!response.ok) {
+      const errorText = await response.text();
+      let errorData;
+      
+      try {
+        errorData = JSON.parse(errorText);
+      } catch {
+        errorData = { error: errorText };
+      }
+
+      console.error("Auth0 userinfo error:", {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorData
+      });
+
+      if (response.status === 401) {
+        return NextResponse.json(
+          { 
+            error: "invalid_token",
+            error_description: "The access token is invalid or expired",
+            details: errorData.error_description || errorData.error
+          },
+          { status: 401 }
+        );
+      }
+
+      if (response.status === 403) {
+        return NextResponse.json(
+          { 
+            error: "insufficient_scope",
+            error_description: "The access token does not have sufficient permissions",
+            details: errorData.error_description || errorData.error
+          },
+          { status: 403 }
+        );
+      }
+
       return NextResponse.json(
-        { error: "Invalid access token" },
-        { status: 401 }
+        { 
+          error: "auth0_error",
+          error_description: "Error from Auth0 userinfo endpoint",
+          details: errorData.error_description || errorData.error
+        },
+        { status: response.status }
       );
     }
 
@@ -44,15 +88,11 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Error fetching user info:", error);
 
-    if (error instanceof Error && error.message.includes("401")) {
-      return NextResponse.json(
-        { error: "Invalid access token" },
-        { status: 401 }
-      );
-    }
-
     return NextResponse.json(
-      { error: "Internal server error" },
+      { 
+        error: "internal_server_error",
+        error_description: "An unexpected error occurred while fetching user information"
+      },
       { status: 500 }
     );
   }
