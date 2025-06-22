@@ -38,7 +38,7 @@ AUTH0_CLIENT_SECRET=your-auth0-client-secret
 AUTH0_SECRET=your-32-character-secret-here
 APP_BASE_URL=https://localhost:3000
 AUTH0_AUDIENCE=https://localhost:3000/
-AUTH0_SCOPE=openid profile email
+AUTH0_SCOPE=openid profile email offline_access
 
 # Auth0 Management API Configuration
 AUTH0_MANAGEMENT_CLIENT_ID=your-management-api-client-id
@@ -82,6 +82,9 @@ npm run dev
 
 - ユーザー認証（ログイン・ログアウト）
 - セッション管理
+- アクセストークン・リフレッシュトークン管理
+- Bearer トークン認証によるAPI アクセス
+- トークンリフレッシュ機能
 - ユーザー情報の取得
 - Management API を使用したユーザー作成
 - メール検証機能
@@ -100,6 +103,7 @@ npm run dev
 
 - `/create-user` - ユーザー作成フォームページ
 - `/verify-email` - メール検証確認ページ
+- `/profile` - アクセストークン・リフレッシュトークンテストページ
 
 ### ユーザー作成フロー
 
@@ -110,7 +114,84 @@ npm run dev
 5. **メール確認**: ユーザーがメール内のリンクをクリックしてアカウント有効化
 6. **ログイン**: 検証完了後、通常のログインフローでアクセス可能
 
+### トークン管理フロー
+
+1. **ログイン**: Auth0 のログインフローを完了
+2. **トークン取得**: `/profile`ページで「トークン取得」ボタンをクリック
+3. **API アクセス**: アクセストークンを使用して `/api/me` からユーザー情報を取得
+4. **トークン更新**: リフレッシュトークンを使用してアクセストークンを更新
+5. **自動更新**: トークン更新後、新しいアクセストークンで再度ユーザー情報を取得
+
 ### API エンドポイント
+
+#### トークン管理 API
+
+**アクセストークンとリフレッシュトークンの取得:**
+
+```bash
+curl -X GET https://localhost:3000/api/token \
+  -H "Cookie: appSession=your-session-cookie" \
+  --insecure
+```
+
+**レスポンス例:**
+
+```json
+{
+  "access_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIs...",
+  "refresh_token": "v1.MUn8ASDF1234567890qwertyuiop...",
+  "expires_at": 1703980800,
+  "expires_in": 86400,
+  "token_type": "Bearer",
+  "scope": "openid profile email offline_access"
+}
+```
+
+**リフレッシュトークンを使用したアクセストークン更新:**
+
+```bash
+curl -X POST https://localhost:3000/api/refresh-token \
+  -H "Content-Type: application/json" \
+  -d '{
+    "refresh_token": "v1.MUn8ASDF1234567890qwertyuiop..."
+  }' \
+  --insecure
+```
+
+**レスポンス例:**
+
+```json
+{
+  "access_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIs...",
+  "refresh_token": "v1.MUn8ASDF1234567890qwertyuiop...",
+  "expires_in": 86400,
+  "token_type": "Bearer",
+  "scope": "openid profile email offline_access"
+}
+```
+
+**Bearerトークン認証によるユーザー情報取得:**
+
+```bash
+curl -X GET https://localhost:3000/api/me \
+  -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIs..." \
+  --insecure
+```
+
+**レスポンス例:**
+
+```json
+{
+  "user": {
+    "sub": "auth0|1234567890abcdef",
+    "name": "John Doe",
+    "email": "john.doe@example.com",
+    "picture": "https://s.gravatar.com/avatar/...",
+    "email_verified": true,
+    "updated_at": "2023-12-01T12:00:00.000Z"
+  }
+}
+```
 
 #### ユーザー作成 API
 
@@ -206,12 +287,17 @@ curl -X POST https://localhost:3000/api/send-email \
 ```
 ├── app/
 │   ├── api/
+│   │   ├── token/        # アクセストークン・リフレッシュトークン取得 API
+│   │   ├── refresh-token/ # トークンリフレッシュ API
+│   │   ├── me/           # Bearer認証によるユーザー情報取得 API
 │   │   ├── users/        # ユーザー作成 API
 │   │   ├── send-email/   # メール送信 API
 │   │   └── verify-email/ # メール検証 API
 │   ├── create-user/      # ユーザー作成ページ
 │   │   └── page.tsx
 │   ├── verify-email/     # メール検証確認ページ
+│   │   └── page.tsx
+│   ├── profile/          # トークン管理デモページ
 │   │   └── page.tsx
 │   ├── page.tsx          # メインページ（認証ロジック含む）
 │   ├── layout.tsx        # レイアウトコンポーネント
@@ -243,3 +329,34 @@ curl -X POST https://localhost:3000/api/send-email \
 1. トップページで「Log in」ボタンをクリック
 2. Auth0 のログインページでメールアドレスとパスワードを入力
 3. 認証成功後、トップページに戻りユーザー情報が表示される
+
+### トークン管理デモ
+
+1. ログイン完了後、「プロフィール」ボタンをクリック
+2. `/profile`ページでトークン管理機能をテスト：
+   - **「トークン取得」**: セッションからアクセストークンとリフレッシュトークンを取得・表示
+   - **「ユーザー情報取得」**: アクセストークンを使用して `/api/me` からユーザー情報を取得・表示
+   - **「トークン更新」**: リフレッシュトークンを使用してアクセストークンを更新し、新しいトークンでユーザー情報を再取得
+
+## 重要な実装詳細
+
+### offline_access スコープ
+
+このプロジェクトでは `offline_access` スコープを使用してリフレッシュトークンを取得しています。これにより、ユーザーがオフラインの状態でもアクセストークンを更新できます。
+
+### セキュリティ考慮事項
+
+- **アクセストークン**: 短期間の有効期限（通常24時間）
+- **リフレッシュトークン**: 長期間有効だが、適切に保護される必要がある
+- **Bearer認証**: API エンドポイントは Bearer トークンによる認証を要求
+- **エラーハンドリング**: 詳細なエラー分類により適切なクライアント側対応が可能
+
+### API エラーハンドリング
+
+`/api/me` エンドポイントは以下のエラータイプを返します：
+
+- `missing_authorization_header`: Authorization ヘッダーが不足
+- `invalid_token`: アクセストークンが無効または期限切れ
+- `insufficient_scope`: トークンに必要な権限が不足
+- `auth0_error`: Auth0 からのエラー
+- `internal_server_error`: サーバー内部エラー

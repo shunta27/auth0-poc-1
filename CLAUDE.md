@@ -81,9 +81,13 @@ MAILTRAP_FROM_EMAIL=noreply@your-domain.com
 - `/` - Home page with authentication state handling
 - `/create-user` - User registration form page
 - `/verify-email` - Email verification confirmation page
+- `/profile` - Access token and refresh token management demo page
 
 #### API Endpoints:
 
+- `/api/token` - GET: Retrieve access token and refresh token from session
+- `/api/refresh-token` - POST: Refresh access token using refresh token
+- `/api/me` - GET: Get user info using Bearer token authentication
 - `/api/users` - POST: Create new user with Management API
 - `/api/send-email` - POST: Send emails via Mailtrap
 - `/api/verify-email` - POST: Handle email verification
@@ -98,13 +102,26 @@ MAILTRAP_FROM_EMAIL=noreply@your-domain.com
 6. User clicks verification link in email to activate account
 7. User can then log in through standard Auth0 flow
 
+### Token Management Flow:
+
+1. User completes Auth0 login flow to obtain session with tokens
+2. User visits `/profile` page to access token management demo
+3. User clicks "トークン取得" to retrieve access token and refresh token from session
+4. User clicks "ユーザー情報取得" to call `/api/me` with Bearer token authentication
+5. User clicks "トークン更新" to refresh access token using refresh token
+6. System automatically fetches user info again with the new access token
+
 ### Usage Patterns:
 
 - Use `auth0.getSession()` for server-side authentication
+- Use session `tokenSet` to access `accessToken`, `refreshToken`, and `expiresAt`
+- Use Bearer token authentication for API endpoints like `/api/me`
 - Use Next.js `Link` component for internal navigation (except Auth0 authentication routes like `/auth/login`, `/auth/logout` which should use `<a>` tags)
 - Session data includes: `user.name`, `user.email`, `user.sub`
+- Token data includes: `accessToken`, `refreshToken`, `expiresAt`, `scope`
 - All forms use consistent design system with Tailwind CSS
 - Email verification is mandatory for new user accounts
+- Refresh tokens enable offline access and token renewal
 
 ## Development Rules
 
