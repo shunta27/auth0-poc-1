@@ -11,11 +11,16 @@ export async function GET() {
 
     const tokenSet = session.tokenSet;
     
+    // Calculate expires_in from expires_at if available
+    const expiresIn = tokenSet.expiresAt 
+      ? Math.max(0, tokenSet.expiresAt - Math.floor(Date.now() / 1000))
+      : undefined;
+    
     return NextResponse.json({
       access_token: tokenSet.accessToken,
       refresh_token: tokenSet.refreshToken,
       expires_at: tokenSet.expiresAt,
-      expires_in: tokenSet.expiresIn,
+      expires_in: expiresIn,
       token_type: "Bearer",
       scope: tokenSet.scope,
     });
