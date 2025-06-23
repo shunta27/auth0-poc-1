@@ -57,10 +57,11 @@ AUTH0_MANAGEMENT_AUDIENCE=https://your-auth0-domain.auth0.com/api/v2/
 AUTH0_CONNECTION_NAME=your-connection-name
 
 # Mailtrap Configuration
-MAILTRAP_API_KEY=your-mailtrap-api-key
-MAILTRAP_SMTP_HOST=live.smtp.mailtrap.io
-MAILTRAP_SMTP_PORT=587
-MAILTRAP_FROM_EMAIL=noreply@your-domain.com
+MAILTRAP_SMTP_USER=your-mailtrap-smtp-user
+MAILTRAP_SMTP_PASSWORD=your-mailtrap-smtp-password
+MAILTRAP_SMTP_HOST=sandbox.smtp.mailtrap.io
+MAILTRAP_SMTP_PORT=2525
+MAILTRAP_FROM_EMAIL=no-reply@demomailtrap.co
 ```
 
 ### Auth0 Dashboard Configuration Required:
