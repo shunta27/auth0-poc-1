@@ -26,7 +26,15 @@ Auth0 ダッシュボードでアプリケーションを作成し、以下の�
 - **Allowed Callback URLs**: `https://localhost:3000/auth/callback`
 - **Allowed Logout URLs**: `https://localhost:3000`
 
-### 3. 環境変数の設定
+### 3. Mailtrap 設定
+
+メール送信機能を使用するため、[Mailtrap](https://mailtrap.io) でアカウントを作成してください：
+
+1. [https://mailtrap.io](https://mailtrap.io) でアカウントを作成
+2. Email Testing の Sandbox 環境を利用
+3. SMTP Settings からユーザー名とパスワードを取得
+
+### 4. 環境変数の設定
 
 `.env.local` ファイルを作成し、Auth0 の設定値を入力してください：
 
@@ -60,7 +68,7 @@ MAILTRAP_FROM_EMAIL=no-reply@demomailtrap.co
 openssl rand -hex 32
 ```
 
-### 4. 開発サーバーの起動
+### 5. 開発サーバーの起動
 
 ```bash
 npm run dev
