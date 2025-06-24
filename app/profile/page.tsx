@@ -27,6 +27,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(false)
   const [refreshLoading, setRefreshLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [copiedToken, setCopiedToken] = useState<string | null>(null)
 
   const fetchTokens = async () => {
     try {
@@ -136,6 +137,16 @@ export default function ProfilePage() {
     }
   }
 
+  const copyToClipboard = async (text: string, tokenType: string) => {
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopiedToken(tokenType)
+      setTimeout(() => setCopiedToken(null), 2000)
+    } catch (err) {
+      console.error('Failed to copy token:', err)
+    }
+  }
+
   return (
     <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
       <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
@@ -190,14 +201,62 @@ export default function ProfilePage() {
               
               <div className="space-y-4">
                 <div className="border-b border-gray-200 dark:border-gray-700 pb-3">
-                  <span className="font-medium text-gray-600 dark:text-gray-400 block mb-2">アクセストークン:</span>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-medium text-gray-600 dark:text-gray-400">アクセストークン:</span>
+                    {tokenData.access_token && (
+                      <button
+                        onClick={() => copyToClipboard(tokenData.access_token, 'access')}
+                        className="flex items-center gap-1 px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
+                      >
+                        {copiedToken === 'access' ? (
+                          <>
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                            コピー済み
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                            コピー
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
                   <code className="text-xs bg-white dark:bg-gray-800 p-2 rounded border text-gray-900 dark:text-white break-all block">
                     {tokenData.access_token ? `${tokenData.access_token.substring(0, 50)}...` : 'なし'}
                   </code>
                 </div>
                 
                 <div className="border-b border-gray-200 dark:border-gray-700 pb-3">
-                  <span className="font-medium text-gray-600 dark:text-gray-400 block mb-2">リフレッシュトークン:</span>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-medium text-gray-600 dark:text-gray-400">リフレッシュトークン:</span>
+                    {tokenData.refresh_token && (
+                      <button
+                        onClick={() => copyToClipboard(tokenData.refresh_token!, 'refresh')}
+                        className="flex items-center gap-1 px-2 py-1 text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors"
+                      >
+                        {copiedToken === 'refresh' ? (
+                          <>
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                            コピー済み
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                            コピー
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
                   <code className="text-xs bg-white dark:bg-gray-800 p-2 rounded border text-gray-900 dark:text-white break-all block">
                     {tokenData.refresh_token ? `${tokenData.refresh_token.substring(0, 50)}...` : 'なし'}
                   </code>
