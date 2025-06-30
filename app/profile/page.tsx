@@ -21,11 +21,29 @@ interface UserInfo {
   updated_at?: string;
 }
 
+interface Organization {
+  id: string;
+  name: string;
+  display_name?: string;
+  description?: string;
+  branding?: object;
+  metadata?: object;
+}
+
+interface OrganizationResponse {
+  organizations: Organization[];
+  user_id: string;
+  total: number;
+  message?: string;
+}
+
 export default function ProfilePage() {
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null)
   const [tokenData, setTokenData] = useState<TokenData | null>(null)
+  const [organizations, setOrganizations] = useState<Organization[]>([])
   const [loading, setLoading] = useState(false)
   const [refreshLoading, setRefreshLoading] = useState(false)
+  const [orgLoading, setOrgLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [copiedToken, setCopiedToken] = useState<string | null>(null)
 
@@ -121,6 +139,11 @@ export default function ProfilePage() {
       
       // Automatically fetch user info with new token
       await fetchUserInfo(newTokens.access_token)
+      
+      // Also fetch organizations with new token if organizations were previously loaded
+      if (organizations.length > 0) {
+        await fetchOrganizations(newTokens.access_token)
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
@@ -134,6 +157,47 @@ export default function ProfilePage() {
       await fetchTokens()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load tokens')
+    }
+  }
+
+  const fetchOrganizations = async (accessToken?: string) => {
+    setOrgLoading(true)
+    setError(null)
+    
+    try {
+      let tokens = tokenData
+      
+      // Get tokens if not provided
+      if (!accessToken && !tokens) {
+        tokens = await fetchTokens()
+      }
+
+      const token = accessToken || tokens?.access_token
+
+      if (!token) {
+        throw new Error('No access token available')
+      }
+
+      // Use access token to call /api/organizations
+      const response = await fetch('/api/organizations', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error_description || errorData.error || 'Failed to fetch organizations')
+      }
+
+      const data: OrganizationResponse = await response.json()
+      setOrganizations(data.organizations)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred while fetching organizations')
+    } finally {
+      setOrgLoading(false)
     }
   }
 
@@ -159,7 +223,7 @@ export default function ProfilePage() {
 
         <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 w-full max-w-4xl">
           {/* Control Buttons */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <button
               onClick={loadTokensOnly}
               className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-green-600 text-white hover:bg-green-700 font-medium text-sm sm:text-base h-12 px-5"
@@ -173,6 +237,14 @@ export default function ProfilePage() {
               className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm sm:text-base h-12 px-5"
             >
               {loading ? 'ユーザー情報取得中...' : 'ユーザー情報取得'}
+            </button>
+            
+            <button
+              onClick={() => fetchOrganizations()}
+              disabled={orgLoading}
+              className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-orange-600 text-white hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm sm:text-base h-12 px-5"
+            >
+              {orgLoading ? '組織取得中...' : '組織一覧取得'}
             </button>
             
             <button
@@ -288,6 +360,55 @@ export default function ProfilePage() {
                     <span className="text-gray-900 dark:text-white ml-2">{tokenData.scope}</span>
                   </div>
                 )}
+              </div>
+            </div>
+          )}
+
+          {/* Organizations Information */}
+          {organizations.length > 0 && (
+            <div className="mb-6 bg-gray-100 dark:bg-gray-900/50 rounded-lg p-6">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                所属組織一覧（/api/organizations から取得）
+              </h2>
+              
+              <div className="space-y-4">
+                {organizations.map((org) => (
+                  <div key={org.id} className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between py-2 border-b border-gray-200 dark:border-gray-700">
+                        <span className="font-medium text-gray-600 dark:text-gray-400">組織ID:</span>
+                        <span className="text-gray-900 dark:text-white font-mono text-sm">{org.id}</span>
+                      </div>
+                      
+                      <div className="flex items-center justify-between py-2 border-b border-gray-200 dark:border-gray-700">
+                        <span className="font-medium text-gray-600 dark:text-gray-400">組織名:</span>
+                        <span className="text-gray-900 dark:text-white">{org.name}</span>
+                      </div>
+                      
+                      {org.display_name && (
+                        <div className="flex items-center justify-between py-2 border-b border-gray-200 dark:border-gray-700">
+                          <span className="font-medium text-gray-600 dark:text-gray-400">表示名:</span>
+                          <span className="text-gray-900 dark:text-white">{org.display_name}</span>
+                        </div>
+                      )}
+                      
+                      {org.description && (
+                        <div className="py-2">
+                          <span className="font-medium text-gray-600 dark:text-gray-400 block mb-2">説明:</span>
+                          <p className="text-gray-900 dark:text-white text-sm bg-gray-50 dark:bg-gray-900 p-3 rounded border">
+                            {org.description}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              <div className="mt-4 text-center">
+                <span className="text-sm text-gray-600 dark:text-gray-400">
+                  合計 {organizations.length} 個の組織に所属しています
+                </span>
               </div>
             </div>
           )}
